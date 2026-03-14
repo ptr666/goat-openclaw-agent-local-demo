@@ -1,0 +1,13 @@
+{
+  "name": "goat-openclaw-agent",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "dev:api": "corepack pnpm --filter agent-api dev",
+    "build": "corepack pnpm -r build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
+  }
+}

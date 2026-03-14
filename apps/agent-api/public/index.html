@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goat Blessing Studio</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #121933;
+        --panel-2: #182243;
+        --text: #eef3ff;
+        --muted: #9fb0d1;
+        --accent: #6ee7b7;
+        --accent-2: #7c9cff;
+        --danger: #ff8b8b;
+        --border: rgba(255,255,255,.08);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #162040 0%, var(--bg) 52%);
+        color: var(--text);
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 64px; }
+      .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 20px; margin-bottom: 20px; }
+      .card {
+        background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 18px 80px rgba(0,0,0,.28);
+      }
+      h1 { font-size: 48px; line-height: 1.02; margin: 0 0 12px; }
+      p { color: var(--muted); line-height: 1.6; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px;
+        background: rgba(110,231,183,.12); color: #baf7de; border: 1px solid rgba(110,231,183,.16);
+        font-size: 13px; margin-bottom: 16px;
+      }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      label { display: block; font-size: 14px; margin-bottom: 8px; color: #d9e4ff; }
+      input, select, textarea {
+        width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border);
+        background: var(--panel-2); color: var(--text); outline: none;
+      }
+      textarea { min-height: 96px; resize: vertical; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+      button {
+        border: 0; border-radius: 14px; padding: 14px 18px; font-weight: 700; cursor: pointer;
+        background: linear-gradient(90deg, var(--accent), #89f0ff); color: #08111f;
+      }
+      button.secondary { background: #22305d; color: var(--text); border: 1px solid var(--border); }
+      button:disabled { opacity: .45; cursor: not-allowed; }
+      .meta { display: grid; gap: 12px; }
+      .meta-item {
+        padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.03); border: 1px solid var(--border);
+      }
+      .meta-item strong { display: block; margin-bottom: 6px; }
+      .hidden { display: none; }
+      .status {
+        padding: 12px 14px; border-radius: 14px; margin-top: 12px; background: rgba(124,156,255,.12);
+        border: 1px solid rgba(124,156,255,.18); color: #dce5ff;
+      }
+      .status.error { background: rgba(255,139,139,.12); border-color: rgba(255,139,139,.2); color: #ffd5d5; }
+      .status.success { background: rgba(110,231,183,.12); border-color: rgba(110,231,183,.18); color: #d2ffef; }
+      .blessing {
+        white-space: pre-wrap; line-height: 1.9; font-size: 18px; padding: 20px;
+        border-radius: 18px; background: rgba(255,255,255,.03); border: 1px solid var(--border);
+      }
+      .code {
+        white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px; color: #c6d6ff;
+      }
+      a { color: #9ee7ff; }
+      @media (max-width: 860px) {
+        .hero, .grid, .row { grid-template-columns: 1fr; }
+        h1 { font-size: 34px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="hero">
+        <section class="card">
+          <div class="badge">🐐 GOAT Testnet3 · x402 Pay-per-action · Blessing Demo</div>
+          <h1>付费后解锁 AI 祝福生成</h1>
+          <p>
+            输入收祝福的人、场景与风格。系统会先创建一笔真实 x402 订单；支付确认后，才显示 AI 生成的祝福语。
+          </p>
+          <div id="config" class="meta"></div>
+        </section>
+        <aside class="card">
+          <div class="meta">
+            <div class="meta-item"><strong>演示流程</strong><span>填写需求 → 创建付费订单 → 按支付信息转账 → 轮询确认 → 解锁祝福</span></div>
+            <div class="meta-item"><strong>当前动作</strong><span>generate_report（祝福生成包装）</span></div>
+            <div class="meta-item"><strong>支付网络</strong><span>GOAT Testnet3 / USDC</span></div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <h2>创建祝福订单</h2>
+          <div class="row">
+            <div>
+              <label>收祝福的人</label>
+              <input id="recipient" value="阿福" />
+            </div>
+            <div>
+              <label>场景</label>
+              <input id="occasion" value="生日" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:14px;">
+            <div>
+              <label>风格</label>
+              <select id="style">
+                <option>温暖</option>
+                <option>幽默</option>
+                <option>正式</option>
+              </select>
+            </div>
+            <div>
+              <label>署名</label>
+              <input id="sender" value="你" />
+            </div>
+          </div>
+          <div style="margin-top:14px;">
+            <label>付款钱包地址</label>
+            <input id="walletAddress" value="0x25e6eae8f93e4264c7fb54a9b60deb181d3452da" />
+          </div>
+          <div style="margin-top:14px;">
+            <label>额外说明</label>
+            <textarea id="notes" placeholder="比如：希望更俏皮一点，提到新的开始。"></textarea>
+          </div>
+          <div class="actions">
+            <button id="createOrderBtn">创建付费订单</button>
+            <button id="checkBtn" class="secondary" disabled>检查支付状态</button>
+            <button id="unlockBtn" class="secondary" disabled>支付后解锁祝福</button>
+          </div>
+          <div id="status" class="status hidden"></div>
+        </section>
+
+        <section class="card">
+          <h2>订单与支付信息</h2>
+          <div id="orderPanel" class="meta">
+            <div class="meta-item"><strong>还没有订单</strong><span>先在左侧创建订单。</span></div>
+          </div>
+          <div id="blessingPanel" class="hidden" style="margin-top:18px;">
+            <h2>已解锁的 AI 祝福</h2>
+            <div id="blessingText" class="blessing"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id)
+      const state = { config: null, order: null, pollTimer: null }
+
+      function setStatus(text, kind = 'info') {
+        const el = $('status')
+        el.textContent = text
+        el.className = `status ${kind === 'error' ? 'error' : kind === 'success' ? 'success' : ''}`.trim()
+        el.classList.remove('hidden')
+      }
+
+      function renderConfig(cfg) {
+        $('config').innerHTML = `
+          <div class="meta-item"><strong>价格</strong><span>${cfg.price} ${cfg.tokenSymbol}</span></div>
+          <div class="meta-item"><strong>后端模式</strong><span>${cfg.paymentProvider}</span></div>
+          <div class="meta-item"><strong>链 ID</strong><span>${cfg.chainId}</span></div>
+        `
+      }
+
+      function renderOrder(order) {
+        const p = order.paymentRequest || {}
+        const accept = (p.accepts && p.accepts[0]) || null
+        const payTo = accept?.payTo || '—'
+        const asset = accept?.asset || '—'
+        const amount = accept?.amount || order?.action?.amount || '—'
+        $('orderPanel').innerHTML = `
+          <div class="meta-item"><strong>本地订单号</strong><div class="code">${order.orderId || '—'}</div></div>
+          <div class="meta-item"><strong>x402 远端订单号</strong><div class="code">${order.remoteOrderId || '—'}</div></div>
+          <div class="meta-item"><strong>当前状态</strong><span>${order.status || '—'}</span></div>
+          <div class="meta-item"><strong>支付金额</strong><span>${amount} ${order.action?.tokenSymbol || ''}</span></div>
+          <div class="meta-item"><strong>收款地址</strong><div class="code">${payTo}</div></div>
+          <div class="meta-item"><strong>Token 合约</strong><div class="code">${asset}</div></div>
+          <div class="meta-item"><strong>原始 x402 响应</strong><div class="code">${JSON.stringify(p, null, 2)}</div></div>
+        `
+      }
+
+      function renderBlessing(result) {
+        $('blessingText').textContent = result?.blessing || '未返回祝福内容'
+        $('blessingPanel').classList.remove('hidden')
+      }
+
+      async function loadConfig() {
+        const res = await fetch('/api/demo/config')
+        const cfg = await res.json()
+        state.config = cfg
+        renderConfig(cfg)
+      }
+
+      async function createOrder() {
+        $('blessingPanel').classList.add('hidden')
+        const body = {
+          recipient: $('recipient').value.trim(),
+          occasion: $('occasion').value.trim(),
+          style: $('style').value,
+          sender: $('sender').value.trim(),
+          walletAddress: $('walletAddress').value.trim(),
+          notes: $('notes').value.trim(),
+        }
+        setStatus('正在创建真实 x402 订单…')
+        const res = await fetch('/api/demo/blessings/order', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        const data = await res.json()
+        if (!res.ok && res.status !== 402) {
+          setStatus(data.error || '创建订单失败', 'error')
+          return
+        }
+        state.order = data
+        renderOrder(data)
+        $('checkBtn').disabled = false
+        $('unlockBtn').disabled = false
+        setStatus('订单已创建。请按右侧支付信息完成转账，然后点击“检查支付状态”。')
+      }
+
+      async function checkStatus(showSuccess = true) {
+        if (!state.order?.orderId) return
+        const res = await fetch(`/api/payments/${state.order.orderId}/status`)
+        const data = await res.json()
+        if (!res.ok) {
+          setStatus(data.error || '查询状态失败', 'error')
+          return
+        }
+        state.order = {
+          ...state.order,
+          orderId: data.orderId,
+          remoteOrderId: data.payment?.remoteOrderId || state.order.remoteOrderId,
+          status: data.status,
+          paymentRequest: data.payment?.paymentRequest || state.order.paymentRequest,
+          action: state.order.action,
+        }
+        renderOrder(state.order)
+        if (showSuccess) setStatus(`当前状态：${data.status}`)
+        return data
+      }
+
+      async function unlockBlessing() {
+        if (!state.order?.orderId) return
+        const res = await fetch(`/api/demo/blessings/${state.order.orderId}`)
+        const data = await res.json()
+        if (res.status === 402) {
+          state.order = { ...state.order, status: data.status, paymentRequest: data.paymentRequest || state.order.paymentRequest }
+          renderOrder(state.order)
+          setStatus('还没确认到付款，先完成支付，再点击解锁。', 'error')
+          return
+        }
+        if (!res.ok) {
+          setStatus(data.error || '解锁失败', 'error')
+          return
+        }
+        renderBlessing(data.result)
+        setStatus('支付已确认，AI 祝福已解锁。', 'success')
+      }
+
+      $('createOrderBtn').addEventListener('click', createOrder)
+      $('checkBtn').addEventListener('click', () => checkStatus(true))
+      $('unlockBtn').addEventListener('click', unlockBlessing)
+      loadConfig().catch((err) => setStatus(err.message || '加载配置失败', 'error'))
+    </script>
+  </body>
+</html>

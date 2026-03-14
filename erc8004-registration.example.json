@@ -1,0 +1,36 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "OpenClaw GoatPay Agent",
+  "description": "A pay-per-action autonomous agent built with OpenClaw, payable via x402 and deployable on GOAT Testnet3.",
+  "image": "ipfs://<cid>/agent.png",
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://your-domain.example/"
+    },
+    {
+      "name": "MCP",
+      "endpoint": "https://your-domain.example/mcp",
+      "version": "2025-06-18"
+    },
+    {
+      "name": "x402",
+      "endpoint": "https://your-domain.example/api/payments/create-order",
+      "version": "1.0.0"
+    },
+    {
+      "name": "actions",
+      "endpoint": "https://your-domain.example/api/actions/run",
+      "version": "1.0.0"
+    }
+  ],
+  "x402Support": true,
+  "active": true,
+  "registrations": [
+    {
+      "agentRegistry": "eip155:48816:0xYourIdentityRegistry",
+      "agentId": 1
+    }
+  ],
+  "supportedTrust": ["reputation"]
+}
